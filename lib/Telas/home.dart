@@ -57,7 +57,7 @@ class _HomeState extends State<Home> {
         appBar: new AppBar(
           title: new Text("Vendas"),
         ),
-        body: Column(
+        body: ListView(
           children: <Widget>[
             StaggeredGridView.count(
               shrinkWrap: true,

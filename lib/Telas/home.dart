@@ -47,7 +47,7 @@ class _HomeState extends State<Home> {
           ),
         ),
       ),
-    );
+    ); 
   }
 
   List<Widget> _tiles = const <Widget>[

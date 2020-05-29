@@ -89,10 +89,10 @@ class _ClienteScreenState extends State<ClienteScreen> {
     return TextFormField(
       decoration: InputDecoration(labelText: 'Data de Nascimento'),
       onTap: () {
+        print("teste");
         showDatePicker(
                 context: context,
-                initialDate:
-                    _dataNascimento == null ? DateTime : _dataNascimento,
+                initialDate: _dataNascimento == null ? DateTime.now() : _dataNascimento,
                 firstDate: DateTime(1920),
                 lastDate: DateTime(2021))
             .then((date) {

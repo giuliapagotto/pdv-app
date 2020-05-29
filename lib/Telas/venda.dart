@@ -70,7 +70,7 @@ class _VendaScreenState extends State<VendaScreen> {
       decoration: InputDecoration(labelText: 'Produto'),
       validator: (String value) {
         if (value.isEmpty) {
-          return 'CPF é obrigatório';
+          return 'Produto é obrigatório';
         }
 
         return null;
@@ -291,7 +291,7 @@ class _VendaScreenState extends State<VendaScreen> {
                     }
                   });
                 },
-                child: Icon(Icons.exposure_neg_1, color: RoxoBonito)),
+                child: Icon(Icons.remove, color: RoxoBonito)),
             SizedBox(
               width: 40.0,
             ),
@@ -309,7 +309,7 @@ class _VendaScreenState extends State<VendaScreen> {
                     quantidade = quantidade + 1;
                   });
                 },
-                child: Icon(Icons.exposure_plus_1, color: RoxoBonito))
+                child: Icon(Icons.add, color: RoxoBonito))
           ],
         ));
   }

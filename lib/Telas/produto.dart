@@ -1,318 +1,80 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertreinaweb/Telas/cliente.dart';
 import 'package:fluttertreinaweb/Telas/home.dart';
 import 'package:fluttertreinaweb/Telas/lista_vendas.dart';
 import 'package:fluttertreinaweb/Telas/login.dart';
-import 'package:fluttertreinaweb/Telas/produto.dart';
+import 'package:fluttertreinaweb/Telas/venda.dart';
+import 'package:fluttertreinaweb/Telas/cliente.dart';
 import 'package:fluttertreinaweb/Telas/vendedor.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-
 
 const RoxoBonito = const Color(0xFF7953D2);
 
-class VendaScreen extends StatefulWidget {
+class ProdutoScreen extends StatefulWidget {
   @override
-  _VendaScreenState createState() => new _VendaScreenState();
+  _ProdutoScreenState createState() => new _ProdutoScreenState();
 }
 
-class _VendaScreenState extends State<VendaScreen> {
-  String _cliente;
-  String _produto;
-  int tamanho = 1;
-  int pagamento = 1;
-  String _vendedor;
-  String _valorTotal;
-  int quantidade = 0;
+class _ProdutoScreenState extends State<ProdutoScreen> {
+  String _nome;
+  String _descricao;
+  String _preco;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  var maskFormatterCPF = new MaskTextInputFormatter(mask: '###.###.###-##', filter: { "#": RegExp(r'[0-9]') });
-
-  Widget _buildVendedor() {
+  Widget _buildNome() {
     return TextFormField(
-      decoration: InputDecoration(labelText: 'CPF do Vendedor'),
-      inputFormatters: [maskFormatterCPF],
+      decoration: InputDecoration(labelText: 'Nome do Produto'),
+      validator: (String value) {
+        if (value.isEmpty) {
+          return 'Nome é obrigatório';
+        }
+
+        return null;
+      },
+      onSaved: (String value) {
+        _nome = value;
+      },
+    );
+  }
+
+  Widget _buildDescricao() {
+    return TextFormField(
+      decoration: InputDecoration(hintText: "Descrição"),
+      minLines: 2,
+      maxLines: 5,
+      validator: (String value) {
+        if (value.isEmpty) {
+          return 'Descrição é obrigatório';
+        }
+
+        return null;
+      },
+      onSaved: (String value) {
+        _descricao = value;
+      },
+      
+    );
+  }
+
+  Widget _buildPreco() {
+    return TextFormField(
+      decoration: InputDecoration(labelText: "Preço",
+      prefixText: "R\$ ",
+      ),
       keyboardType: TextInputType.number,
       validator: (String value) {
         if (value.isEmpty) {
-          return 'CPF é obrigatório';
+          return 'Preço é obrigatório';
         }
 
         return null;
       },
       onSaved: (String value) {
-        _vendedor = value;
+        _preco = value;
       },
     );
   }
 
-  Widget _buildCliente() {
-    return TextFormField(
-      decoration: InputDecoration(labelText: 'CPF do Cliente'),
-      inputFormatters: [maskFormatterCPF],
-      keyboardType: TextInputType.number,
-      validator: (String value) {
-        if (value.isEmpty) {
-          return 'CPF é obrigatório';
-        }
-
-        return null;
-      },
-      onSaved: (String value) {
-        _cliente = value;
-      },
-    );
-  }
-
-  Widget _buildProduto() {
-    return TextFormField(
-      decoration: InputDecoration(labelText: 'Produto'),
-      validator: (String value) {
-        if (value.isEmpty) {
-          return 'CPF é obrigatório';
-        }
-
-        return null;
-      },
-      onSaved: (String value) {
-        _produto = value;
-      },
-    );
-  }
-
-  Widget _buildTamanhoLabel() {
-    return Container(
-        padding: EdgeInsets.only(top: 30.0),
-        alignment: Alignment.centerLeft,
-        child: Text(
-          'Tamanho',
-          style: TextStyle(
-            color: Colors.black54,
-            fontSize: 16.0,
-          ),
-        ));
-  }
-
-  Widget _buildTamanhoRadio() {
-    return Container(
-        padding: EdgeInsets.all(15.0),
-        child: Column(
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Radio(
-                  value: 1,
-                  activeColor: RoxoBonito,
-                  groupValue: tamanho,
-                  onChanged: (T) {
-                    print(T);
-
-                    setState(() {
-                      tamanho = T;
-                    });
-                  },
-                ),
-                Text("Grande",
-                    style: TextStyle(
-                        color: Color(0xFF527DAA),
-                        letterSpacing: 2.0,
-                        fontSize: 14.0)),
-              ],
-            ),
-            Row(
-              children: <Widget>[
-                Radio(
-                  value: 2,
-                  activeColor: RoxoBonito,
-                  groupValue: tamanho,
-                  onChanged: (T) {
-                    print(T);
-
-                    setState(() {
-                      tamanho = T;
-                    });
-                  },
-                ),
-                Text("Médio",
-                    style: TextStyle(
-                        color: Color(0xFF527DAA),
-                        letterSpacing: 2.0,
-                        fontSize: 14.0))
-              ],
-            ),
-            Row(
-              children: <Widget>[
-                Radio(
-                  value: 3,
-                  activeColor: RoxoBonito,
-                  groupValue: tamanho,
-                  onChanged: (T) {
-                    print(T);
-
-                    setState(() {
-                      tamanho = T;
-                    });
-                  },
-                ),
-                Text("Pequeno",
-                    style: TextStyle(
-                        color: Color(0xFF527DAA),
-                        letterSpacing: 2.0,
-                        fontSize: 14.0))
-              ],
-            )
-          ],
-        ));
-  }
-
-  Widget _buildPagamentoLabel() {
-    return Container(
-        padding: EdgeInsets.only(top: 30.0),
-        alignment: Alignment.centerLeft,
-        child: Text(
-          'Forma de Pagamento',
-          style: TextStyle(
-            color: Colors.black54,
-            fontSize: 16.0,
-          ),
-        ));
-  }
-
-  Widget _buildFormaPagamentoRadio() {
-    return Container(
-        padding: EdgeInsets.all(15.0),
-        child: Column(
-          children: <Widget>[
-            Row(children: <Widget>[
-              Radio(
-                value: 1,
-                activeColor: RoxoBonito,
-                groupValue: pagamento,
-                onChanged: (T) {
-                  print(T);
-
-                  setState(() {
-                    pagamento = T;
-                  });
-                },
-              ),
-              Text("Crédito",
-                  style: TextStyle(
-                      color: Color(0xFF527DAA),
-                      letterSpacing: 1.5,
-                      fontSize: 14.0))
-            ]),
-            Row(children: <Widget>[
-              Radio(
-                value: 2,
-                activeColor: RoxoBonito,
-                groupValue: pagamento,
-                onChanged: (T) {
-                  print(T);
-
-                  setState(() {
-                    pagamento = T;
-                  });
-                },
-              ),
-              Text("Débito",
-                  style: TextStyle(
-                      color: Color(0xFF527DAA),
-                      letterSpacing: 1.5,
-                      fontSize: 14.0))
-            ]),
-            Row(
-              children: <Widget>[
-                Radio(
-                  value: 3,
-                  activeColor: RoxoBonito,
-                  groupValue: pagamento,
-                  onChanged: (T) {
-                    print(T);
-
-                    setState(() {
-                      pagamento = T;
-                    });
-                  },
-                ),
-                Text("Dinheiro",
-                    style: TextStyle(
-                        color: Color(0xFF527DAA),
-                        letterSpacing: 1.5,
-                        fontSize: 14.0))
-              ],
-            )
-          ],
-        ));
-  }
-
-  Widget _buildValorTotal() {
-    return TextFormField(
-      decoration: InputDecoration(labelText: 'Valor Total', prefixText: "R\$"),
-      keyboardType: TextInputType.number,
-      validator: (String value) {
-        if (value.isEmpty) {
-          return 'Valor é obrigatório';
-        }
-
-        return null;
-      },
-      onSaved: (String value) {
-        _valorTotal = value;
-      },
-    );
-  }
-
-  Widget _buildAddLabel() {
-    return Container(
-        padding: EdgeInsets.only(top: 30.0),
-        alignment: Alignment.centerLeft,
-        child: Text(
-          'Quantidade',
-          style: TextStyle(
-            color: Colors.black54,
-            fontSize: 16.0,
-          ),
-        ));
-  }
-
-  Widget _buildAddProduto() {
-    return Container(
-        padding: EdgeInsets.all(10.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            FlatButton(
-                onPressed: () {
-                 setState(() {
-                   if(quantidade > 0){
-                    quantidade = quantidade - 1;
-                    }
-                  });
-                },
-                child: Icon(Icons.exposure_neg_1, color: RoxoBonito)),
-            SizedBox(
-              width: 40.0,
-            ),
-            Text(quantidade.toString(),
-                style: TextStyle(
-                  color: Colors.black54,
-                  fontSize: 35.0,
-                )),
-            SizedBox(
-              width: 40.0,
-            ),
-            FlatButton(
-                onPressed: () {
-                  setState(() {
-                    quantidade = quantidade + 1;
-                  });
-                },
-                child: Icon(Icons.exposure_plus_1, color: RoxoBonito))
-          ],
-        ));
-  }
 
   Widget _buildSaveBtn() {
     return Container(
@@ -325,6 +87,9 @@ class _VendaScreenState extends State<VendaScreen> {
             return;
           }
           _formKey.currentState.save();
+
+          print(_nome);
+
           //Navigator.push(
           //    context, MaterialPageRoute(builder: (context) => Home()));
         },
@@ -347,7 +112,7 @@ class _VendaScreenState extends State<VendaScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Cadastrar venda'),
+          title: Text('Cadastrar produto'),
         ),
         drawer: new Drawer(
           child: new ListView(
@@ -471,7 +236,7 @@ class _VendaScreenState extends State<VendaScreen> {
                         MaterialPageRoute(builder: (context) => VendedorScreen()));
                   },
                   trailing: new Icon(Icons.person_outline)),
-              new Divider(),
+              new Divider(), 
               new ListTile(
                   title: Padding(
                     padding: EdgeInsets.only(top: 5.0),
@@ -529,17 +294,11 @@ class _VendaScreenState extends State<VendaScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          _buildProduto(),
-                          _buildTamanhoLabel(),
-                          _buildTamanhoRadio(),
-                          _buildAddLabel(),
-                          _buildAddProduto(),
-                          _buildVendedor(),
-                          _buildCliente(),
-                          _buildPagamentoLabel(),
-                          _buildFormaPagamentoRadio(),
-                          _buildValorTotal(),
-                          _buildSaveBtn()
+                         _buildNome(),
+                         _buildDescricao(),
+                         _buildPreco(),
+                          SizedBox(height: 100.0),
+                         _buildSaveBtn()
                         ],
                       ),
                     ),

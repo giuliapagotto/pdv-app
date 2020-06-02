@@ -7,6 +7,7 @@ import 'package:fluttertreinaweb/Telas/produto.dart';
 import 'package:fluttertreinaweb/Telas/venda.dart';
 import 'package:fluttertreinaweb/Telas/vendedor.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:date_format/date_format.dart'; 
 
 const RoxoBonito = const Color(0xFF7953D2);
 
@@ -95,15 +96,14 @@ class _ClienteScreenState extends State<ClienteScreen> {
                 initialDate: _dataNascimento == null ? DateTime.now() : _dataNascimento,
                 firstDate: DateTime(1920),
                 lastDate: DateTime(2021))
-            .then((date) {
+            .then((date) { 
           setState(() {
             _dataNascimento = date;
-            _dataNascimento.toString();
-           print(_dataNascimento);
+           print(formatDate(_dataNascimento, [dd, '/', mm, '/', yyyy]));
           });
         });
       },
-        controller: TextEditingController(text: (_dataNascimento == null ? '' : _dataNascimento.toString())),
+        controller: TextEditingController(text: (_dataNascimento == null ? '' : formatDate(_dataNascimento, [dd, '/', mm, '/', yyyy]))),
     );
   }
 
@@ -199,8 +199,8 @@ class _ClienteScreenState extends State<ClienteScreen> {
 
           print(maskFormatterCPF.getUnmaskedText());
 
-          //Navigator.push(
-          //    context, MaterialPageRoute(builder: (context) => Home()));
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => Home()));
         },
         padding: EdgeInsets.all(15.0),
         shape:

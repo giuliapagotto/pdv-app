@@ -34,7 +34,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  intl: ^0.16.1
+  date_format: ^1.0.4
 
 
 flutter_icons:

@@ -27,12 +27,13 @@ class _VendaScreenState extends State<VendaScreen> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  var maskFormatterCPF = new MaskTextInputFormatter(mask: '###.###.###-##', filter: { "#": RegExp(r'[0-9]') });
+  var maskFormatterCPFVendedor = new MaskTextInputFormatter(mask: '###.###.###-##', filter: { "#": RegExp(r'[0-9]') });
+  var maskFormatterCPFCliente = new MaskTextInputFormatter(mask: '###.###.###-##', filter: { "#": RegExp(r'[0-9]') });
 
   Widget _buildVendedor() {
     return TextFormField(
       decoration: InputDecoration(labelText: 'CPF do Vendedor'),
-      inputFormatters: [maskFormatterCPF],
+      inputFormatters: [maskFormatterCPFVendedor],
       keyboardType: TextInputType.number,
       validator: (String value) {
         if (value.isEmpty) {
@@ -50,7 +51,7 @@ class _VendaScreenState extends State<VendaScreen> {
   Widget _buildCliente() {
     return TextFormField(
       decoration: InputDecoration(labelText: 'CPF do Cliente'),
-      inputFormatters: [maskFormatterCPF],
+      inputFormatters: [maskFormatterCPFCliente],
       keyboardType: TextInputType.number,
       validator: (String value) {
         if (value.isEmpty) {
@@ -325,8 +326,8 @@ class _VendaScreenState extends State<VendaScreen> {
             return;
           }
           _formKey.currentState.save();
-          //Navigator.push(
-          //    context, MaterialPageRoute(builder: (context) => Home()));
+          Navigator.push(
+           context, MaterialPageRoute(builder: (context) => Home()));
         },
         padding: EdgeInsets.all(15.0),
         shape:

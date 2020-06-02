@@ -181,8 +181,8 @@ class _VendedorScreenState extends State<VendedorScreen> {
 
           print(maskFormatterCPF.getUnmaskedText());
 
-          //Navigator.push(
-          //    context, MaterialPageRoute(builder: (context) => Home()));
+          Navigator.push(
+            context, MaterialPageRoute(builder: (context) => Home()));
         },
         padding: EdgeInsets.all(15.0),
         shape:

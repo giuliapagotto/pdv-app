@@ -90,8 +90,8 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
 
           print(_nome);
 
-          //Navigator.push(
-          //    context, MaterialPageRoute(builder: (context) => Home()));
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => Home()));
         },
         padding: EdgeInsets.all(15.0),
         shape:

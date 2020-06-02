@@ -23,7 +23,7 @@ class _VendaScreenState extends State<VendaScreen> {
   int pagamento = 1;
   String _vendedor;
   String _valorTotal;
-  int quantidade = 0;
+  int quantidade = 1;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -287,7 +287,7 @@ class _VendaScreenState extends State<VendaScreen> {
             FlatButton(
                 onPressed: () {
                  setState(() {
-                   if(quantidade > 0){
+                   if(quantidade > 1){
                     quantidade = quantidade - 1;
                     }
                   });

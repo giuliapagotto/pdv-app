@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fluttertreinaweb/Telas/home.dart';
 import 'package:fluttertreinaweb/Telas/lista_vendas.dart';
 import 'package:fluttertreinaweb/Telas/login.dart';
@@ -8,6 +9,8 @@ import 'package:fluttertreinaweb/Telas/venda.dart';
 import 'package:fluttertreinaweb/Telas/vendedor.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:date_format/date_format.dart'; 
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 const RoxoBonito = const Color(0xFF7953D2);
 
@@ -26,6 +29,73 @@ class _ClienteScreenState extends State<ClienteScreen> {
   DateTime _dataNascimento;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  var gestorHome = false;
+
+  GlobalKey<ScaffoldState> _key = new GlobalKey<ScaffoldState>();
+
+  Future<bool> _getBool() async {
+    final prefs = await SharedPreferences.getInstance();
+    final gestorLog = prefs.getBool("loginGestor");
+    if (gestorLog == true) {
+      gestorHome = true;
+    }
+    if (gestorLog == false) {
+      gestorHome = false;
+    }
+  }
+
+  Future<void> _resetBool() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('loginGestor', false);
+    gestorHome = false;
+  }
+
+  _cadastarCliente() async {
+    // set up POST request arguments
+    String url = 'https://vendasprojeto.herokuapp.com/clientes';
+    Map<String, String> headers = {"Content-type": "application/json"};
+    String json = '{"nome": "${_nome}", "dataNascimento": "${_dataNascimento}", "cpf": "${maskFormatterCPF.getUnmaskedText()}", "email": "${_email}", "celular": "${maskFormatterCelular.getUnmaskedText()}", "endereco": "${_endereco}"}';
+    // make POST request
+    http.Response response = await http.post(url, headers: headers, body: json);
+    // check the status code for the result
+    int statusCode = response.statusCode;
+    // this API passes back the id of the new item added to the body
+    String responseBody = response.body;
+    //home navigation
+    if (statusCode == 200) {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+      Fluttertoast.showToast(
+              msg: "Cliente cadastrado",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              fontSize: 16.0);
+    }
+    //erro
+    if (statusCode == 401) {
+       Fluttertoast.showToast(
+              msg: "Este e-mail já está em uso",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0);
+    }
+    if (statusCode == 400) {
+       Fluttertoast.showToast(
+              msg: "Este CPF já está em uso",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0);
+    }
+  }
 
   var maskFormatterCPF = new MaskTextInputFormatter(mask: '###.###.###-##', filter: { "#": RegExp(r'[0-9]') });
   var maskFormatterCelular = new MaskTextInputFormatter(mask: '(##) #####-####', filter: { "#": RegExp(r'[0-9]') });
@@ -99,7 +169,7 @@ class _ClienteScreenState extends State<ClienteScreen> {
             .then((date) { 
           setState(() {
             _dataNascimento = date;
-           print(formatDate(_dataNascimento, [dd, '/', mm, '/', yyyy]));
+           print(_dataNascimento);
           });
         });
       },
@@ -142,7 +212,7 @@ class _ClienteScreenState extends State<ClienteScreen> {
     );
   }
 
-  Widget _buildSexoRadio() {
+ /* Widget _buildSexoRadio() {
     return Container(
         padding: EdgeInsets.all(15.0),
         child: Row(
@@ -183,7 +253,7 @@ class _ClienteScreenState extends State<ClienteScreen> {
                     fontSize: 14.0))
           ],
         ));
-  }
+  }*/
 
   Widget _buildSaveBtn() {
     return Container(
@@ -196,11 +266,7 @@ class _ClienteScreenState extends State<ClienteScreen> {
             return;
           }
           _formKey.currentState.save();
-
-          print(maskFormatterCPF.getUnmaskedText());
-
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => Home()));
+          _cadastarCliente();
         },
         padding: EdgeInsets.all(15.0),
         shape:
@@ -217,11 +283,24 @@ class _ClienteScreenState extends State<ClienteScreen> {
     );
   }
 
+  _handleDrawer() {
+    _key.currentState.openDrawer();
+
+    setState(() {
+      _getBool();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+       key: _key,
         appBar: AppBar(
           title: Text('Cadastrar cliente'),
+          leading: new IconButton(
+          icon: new Icon(Icons.menu),
+          onPressed: _handleDrawer,
+        ),
         ),
         drawer: new Drawer(
           child: new ListView(
@@ -326,7 +405,8 @@ class _ClienteScreenState extends State<ClienteScreen> {
                   },
                   trailing: new Icon(Icons.add_shopping_cart)),
               new Divider(),
-              new ListTile(
+              Visibility(
+              child: new ListTile(
                   title: Padding(
                     padding: EdgeInsets.only(top: 5.0),
                     child: new Text(
@@ -341,11 +421,15 @@ class _ClienteScreenState extends State<ClienteScreen> {
                   ),
                   onTap: () {
                     print('Cadastrar Vendedor Pressed');
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => VendedorScreen()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => VendedorScreen()));
                   },
                   trailing: new Icon(Icons.person_outline)),
-              new Divider(),
+              visible: gestorHome,
+            ),
+            Visibility(child: new Divider(), visible: gestorHome),
               new ListTile(
                   title: Padding(
                     padding: EdgeInsets.only(top: 5.0),
@@ -382,6 +466,7 @@ class _ClienteScreenState extends State<ClienteScreen> {
                     ),
                   ),
                   onTap: () {
+                    _resetBool();
                     print('Logout Pressed');
                     Navigator.push(context,
                         MaterialPageRoute(builder: (context) => LoginScreen()));

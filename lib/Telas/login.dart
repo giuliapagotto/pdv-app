@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertreinaweb/Telas/home.dart';
+import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final kHintTextStyle = TextStyle(
   color: Colors.white54,
@@ -31,14 +35,78 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  String login;
+  String senha;
+  bool emptyL = false;
+  bool emptyS = false;
+  String msgToast = '';
   bool _rememberMe = false;
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  //get 
+  Future<bool> _getBool() async {
+    final prefs = await SharedPreferences.getInstance();
+    final gestorLog = prefs.getBool("loginGestor");
+    if(gestorLog == null){
+      return false;
+    }
+    return gestorLog;
+  }
+
+  //reset to false
+  Future<void> _resetBool() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('loginGestor', false);
+  }
+
+
+//LOGIN
+  _loginRequest() async {
+    // set up POST request arguments
+    String url = 'https://vendasprojeto.herokuapp.com/authenticate';
+    Map<String, String> headers = {"Content-type": "application/json"};
+    String json = '{"login": "${login}","senha": "${senha}"}';
+    // make POST request
+    http.Response response = await http.post(url, headers: headers, body: json);
+    // check the status code for the result
+    int statusCode = response.statusCode;
+    // this API passes back the id of the new item added to the body
+    String responseBody = response.body;
+    Map<String, dynamic> usuario = jsonDecode(responseBody);
+    //home navigation
+    if (statusCode == 200) {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+      var gestor = usuario['user']['gestor'];
+      if (gestor == true) {
+        //set instance true
+        Future<bool> _setBool() async {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool("loginGestor", gestor);
+          print(prefs.getBool('loginGestor'));
+        }
+        _setBool();
+      }
+    }
+    //LOGIN OU SENHA INVALIDOS
+    if (statusCode == 400) {
+      Fluttertoast.showToast(
+          msg: "Login e/ou senha inválidos",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
 
   Widget _buildEmailTF() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'Email',
+          'Login',
           style: kLabelStyle,
         ),
         SizedBox(height: 10.0),
@@ -46,19 +114,31 @@ class _LoginScreenState extends State<LoginScreen> {
           alignment: Alignment.centerLeft,
           decoration: kBoxDecorationStyle,
           height: 60.0,
-          child: TextField(
-              keyboardType: TextInputType.emailAddress,
-              style: TextStyle(color: Colors.white, fontFamily: 'OpenSans'),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.only(top: 14.0),
-                prefixIcon: Icon(
-                  Icons.email,
-                  color: Colors.white,
-                ),
-                hintText: 'Digite seu e-mail',
-                hintStyle: kHintTextStyle,
-              )),
+          child: TextFormField(
+            keyboardType: TextInputType.emailAddress,
+            style: TextStyle(color: Colors.white, fontFamily: 'OpenSans'),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.only(top: 14.0),
+              prefixIcon: Icon(
+                Icons.email,
+                color: Colors.white,
+              ),
+              hintText: 'Login',
+              hintStyle: kHintTextStyle,
+            ),
+            validator: (String value) {
+              if (value.isEmpty) {
+                setState(() {
+                  emptyL = true;
+                });
+              }
+              return null;
+            },
+            onSaved: (String value) {
+              login = value;
+            },
+          ),
         )
       ],
     );
@@ -77,19 +157,29 @@ class _LoginScreenState extends State<LoginScreen> {
           alignment: Alignment.centerLeft,
           decoration: kBoxDecorationStyle,
           height: 60.0,
-          child: TextField(
-              obscureText: true,
-              style: TextStyle(color: Colors.white, fontFamily: 'OpenSans'),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.only(top: 14.0),
-                prefixIcon: Icon(
-                  Icons.lock,
-                  color: Colors.white,
-                ),
-                hintText: 'Digite sua senha',
-                hintStyle: kHintTextStyle,
-              )),
+          child: TextFormField(
+            obscureText: true,
+            style: TextStyle(color: Colors.white, fontFamily: 'OpenSans'),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.only(top: 14.0),
+              prefixIcon: Icon(
+                Icons.lock,
+                color: Colors.white,
+              ),
+              hintText: 'Senha',
+              hintStyle: kHintTextStyle,
+            ),
+            validator: (String value) {
+              if (value.isEmpty) {
+                emptyS = true;
+              }
+              return null;
+            },
+            onSaved: (String value) {
+              senha = value;
+            },
+          ),
         )
       ],
     );
@@ -144,9 +234,33 @@ class _LoginScreenState extends State<LoginScreen> {
       child: RaisedButton(
         elevation: 5.0,
         onPressed: () {
-          print('Login Button Pressed');
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => Home()));
+          if (!_formKey.currentState.validate()) {
+            return;
+          }
+          _formKey.currentState.save();
+          _loginRequest();
+          if (emptyL == true && emptyS == false) {
+            msgToast = 'Informe o login';
+          }
+          if (emptyL == false && emptyS == true) {
+            msgToast = 'Informe sua senha';
+          }
+          if (emptyL == true && emptyS == true) {
+            msgToast = 'Informe Login e Senha';
+          }
+          if (msgToast != '') {
+            Fluttertoast.showToast(
+                msg: msgToast,
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                backgroundColor: Colors.red,
+                textColor: Colors.white,
+                fontSize: 16.0);
+          }
+          emptyL = false;
+          emptyS = false;
+          msgToast = '';
         },
         padding: EdgeInsets.all(15.0),
         shape:
@@ -185,32 +299,35 @@ class _LoginScreenState extends State<LoginScreen> {
             )),
           ),
           Container(
-            height: double.infinity,
-            child: SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 120.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    'Login',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'OpenSans',
-                        fontSize: 30.0,
-                        fontWeight: FontWeight.bold),
+              height: double.infinity,
+              child: SingleChildScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                padding:
+                    EdgeInsets.symmetric(horizontal: 40.0, vertical: 120.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        'Login',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'OpenSans',
+                            fontSize: 30.0,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 30.0),
+                      _buildEmailTF(),
+                      SizedBox(height: 30.0),
+                      _buildSenhaTF(),
+                      _buildEsqueceuSenhaBtn(),
+                      _buildLembrarAcessoCheckBox(),
+                      _buildLoginBtn()
+                    ],
                   ),
-                  SizedBox(height: 30.0),
-                  _buildEmailTF(),
-                  SizedBox(height: 30.0),
-                  _buildSenhaTF(),
-                  _buildEsqueceuSenhaBtn(),
-                  _buildLembrarAcessoCheckBox(),
-                  _buildLoginBtn()
-                ],
-              ),
-            ),
-          )
+                ),
+              ))
         ],
       ),
     ));

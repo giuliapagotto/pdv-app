@@ -5,6 +5,7 @@ import 'package:fluttertreinaweb/Telas/login.dart';
 import 'package:fluttertreinaweb/Telas/produto.dart';
 import 'package:fluttertreinaweb/Telas/venda.dart';
 import 'package:fluttertreinaweb/Telas/vendedor.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const RoxoBonito = const Color(0xFF7953D2);
 
@@ -14,11 +15,46 @@ class ListaVendaScreen extends StatefulWidget {
 }
 
 class _ListaVendaScreenState extends State<ListaVendaScreen> {
+
+  var gestorHome = false;
+
+  GlobalKey<ScaffoldState> _key = new GlobalKey<ScaffoldState>();
+
+  Future<bool> _getBool() async {
+    final prefs = await SharedPreferences.getInstance();
+    final gestorLog = prefs.getBool("loginGestor");
+    if (gestorLog == true) {
+      gestorHome = true;
+    }
+    if (gestorLog == false) {
+      gestorHome = false;
+    }
+  }
+
+  Future<void> _resetBool() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('loginGestor', false);
+    gestorHome = false;
+  }
+
+ _handleDrawer() {
+    _key.currentState.openDrawer();
+
+    setState(() {
+      _getBool();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+       key: _key,
       appBar: AppBar(
         title: Text('Lista de vendas'),
+        leading: new IconButton(
+          icon: new Icon(Icons.menu),
+          onPressed: _handleDrawer,
+        ),
       ),
       drawer: new Drawer(
         child: new ListView(
@@ -121,7 +157,8 @@ class _ListaVendaScreenState extends State<ListaVendaScreen> {
                   },
                   trailing: new Icon(Icons.add_shopping_cart)),
               new Divider(),
-              new ListTile(
+              Visibility(
+              child: new ListTile(
                   title: Padding(
                     padding: EdgeInsets.only(top: 5.0),
                     child: new Text(
@@ -136,11 +173,15 @@ class _ListaVendaScreenState extends State<ListaVendaScreen> {
                   ),
                   onTap: () {
                     print('Cadastrar Vendedor Pressed');
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => VendedorScreen()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => VendedorScreen()));
                   },
                   trailing: new Icon(Icons.person_outline)),
-              new Divider(),
+              visible: gestorHome,
+            ),
+            Visibility(child: new Divider(), visible: gestorHome),
             new ListTile(
                 title: Padding(
                   padding: EdgeInsets.only(top: 5.0),
@@ -175,6 +216,7 @@ class _ListaVendaScreenState extends State<ListaVendaScreen> {
                   ),
                 ),
                 onTap: () {
+                  _resetBool();
                   print('Logout Pressed');
                   Navigator.push(context,
                       MaterialPageRoute(builder: (context) => LoginScreen()));

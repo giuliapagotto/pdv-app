@@ -1,6 +1,7 @@
 # Vendas app
 
 Primeira aplicação com Flutter
+MVP de Sistema PDV
 
 ## Getting Started
 
